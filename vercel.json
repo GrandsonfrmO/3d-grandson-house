@@ -2,10 +2,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
-  "env": {
-    "VITE_LANGUAGE": "@vite_language",
-    "VITE_CURRENCY": "@vite_currency"
-  },
   "regions": ["cdg1"],
   "functions": {
     "api/**/*.ts": {
