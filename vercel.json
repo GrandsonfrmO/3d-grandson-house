@@ -6,7 +6,6 @@
     "VITE_LANGUAGE": "@vite_language",
     "VITE_CURRENCY": "@vite_currency"
   },
-  "envPrefix": "VITE_",
   "regions": ["cdg1"],
   "functions": {
     "api/**/*.ts": {
