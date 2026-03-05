@@ -1,0 +1,31 @@
+# Code Owners - Automatiquement demander une review des propriétaires
+
+# Global owners
+* @your-github-username
+
+# Frontend
+/src/components/ @your-github-username
+/src/hooks/ @your-github-username
+/src/i18n/ @your-github-username
+
+# Backend
+/src/api/ @your-github-username
+/server.ts @your-github-username
+
+# Services
+/src/services/ @your-github-username
+/src/monitoring/ @your-github-username
+
+# Configuration
+/package.json @your-github-username
+/tsconfig.json @your-github-username
+/vite.config.ts @your-github-username
+/.github/ @your-github-username
+
+# Documentation
+/README.md @your-github-username
+/DEPLOYMENT.md @your-github-username
+/CONTRIBUTING.md @your-github-username
+
+# Database
+/scripts/ @your-github-username

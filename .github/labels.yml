@@ -1,0 +1,77 @@
+# Labels pour les issues et PRs
+
+- name: bug
+  color: d73a4a
+  description: Quelque chose ne fonctionne pas
+
+- name: enhancement
+  color: a2eeef
+  description: Nouvelle fonctionnalité ou demande d'amélioration
+
+- name: documentation
+  color: 0075ca
+  description: Amélioration ou ajout de documentation
+
+- name: good first issue
+  color: 7057ff
+  description: Bon pour les nouveaux contributeurs
+
+- name: help wanted
+  color: 008672
+  description: Aide supplémentaire souhaitée
+
+- name: question
+  color: d876e3
+  description: Question supplémentaire
+
+- name: wontfix
+  color: ffffff
+  description: Ce problème ne sera pas résolu
+
+- name: duplicate
+  color: cfd3d7
+  description: Ce problème ou PR est un doublon
+
+- name: invalid
+  color: e4e669
+  description: Ce problème ou PR n'est pas valide
+
+- name: priority-high
+  color: ff0000
+  description: Haute priorité
+
+- name: priority-medium
+  color: ffaa00
+  description: Priorité moyenne
+
+- name: priority-low
+  color: 00aa00
+  description: Basse priorité
+
+- name: type-frontend
+  color: 1f6feb
+  description: Concerne le frontend
+
+- name: type-backend
+  color: 0e8a16
+  description: Concerne le backend
+
+- name: type-database
+  color: 6f42c1
+  description: Concerne la base de données
+
+- name: type-devops
+  color: fbca04
+  description: Concerne DevOps/Infrastructure
+
+- name: status-in-progress
+  color: 0366d6
+  description: En cours de traitement
+
+- name: status-review
+  color: 0366d6
+  description: En attente de review
+
+- name: status-blocked
+  color: d73a4a
+  description: Bloqué par quelque chose
