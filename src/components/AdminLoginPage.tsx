@@ -68,11 +68,6 @@ export function AdminLoginPage({ onLoginSuccess }: AdminLoginPageProps) {
               {loading ? 'Connexion en cours...' : 'Se connecter'}
             </button>
           </form>
-
-          <div className="login-info">
-            <p>Identifiants de connexion:</p>
-            <code>admin / admin123</code>
-          </div>
         </div>
       </div>
     </div>

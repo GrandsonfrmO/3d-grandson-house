@@ -4,7 +4,7 @@ import { Lock, ShieldCheck, ArrowRight, X, AlertCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 export function AdminLoginUI({ onLogin, onClose }: { onLogin: (token: string) => void, onClose: () => void }) {
-  const [username, setUsername] = useState('admin');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const { login, isLoading, error } = useAuth();
 
@@ -80,7 +80,6 @@ export function AdminLoginUI({ onLogin, onClose }: { onLogin: (token: string) =>
                 autoFocus
               />
             </div>
-            <p className="text-gray-500 text-xs mt-2">Demo: admin / admin123</p>
           </div>
 
           <button 

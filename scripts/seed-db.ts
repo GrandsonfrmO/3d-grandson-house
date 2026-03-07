@@ -6,7 +6,8 @@ dotenv.config();
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false,
+    // SECURITY: Enable SSL verification to prevent MITM attacks
+    rejectUnauthorized: process.env.NODE_ENV === 'production',
   },
 });
 

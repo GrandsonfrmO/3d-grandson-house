@@ -19,7 +19,13 @@ import {
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+
+// SECURITY: Never use a hardcoded fallback for JWT_SECRET
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.error('FATAL ERROR: JWT_SECRET is not defined.');
+  process.exit(1);
+}
 
 // Logger utility
 const logger = {
@@ -38,7 +44,8 @@ const logger = {
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false,
+    // SECURITY: Set to true in production to prevent MITM attacks
+    rejectUnauthorized: process.env.NODE_ENV === 'production',
   },
 });
 
@@ -256,6 +263,7 @@ app.get('/api/posters', async (req: Request, res: Response) => {
 });
 
 // Update posters (Protected)
+// SECURITY: Applied authenticateToken to prevent unauthorized defacement
 app.put('/api/posters/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
@@ -296,6 +304,7 @@ app.get('/api/screens', async (req: Request, res: Response) => {
 });
 
 // Update screens (Protected)
+// SECURITY: Applied authenticateToken to prevent unauthorized defacement
 app.put('/api/screens/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
@@ -327,6 +336,7 @@ app.put('/api/screens/:id', authenticateToken, async (req: AuthRequest, res: Res
 });
 
 // ORDERS ENDPOINTS (Protected)
+// SECURITY: Applied authenticateToken to prevent public data leak of customer info
 app.get('/api/orders', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     logger.info('Fetching orders', { user: req.user?.username });

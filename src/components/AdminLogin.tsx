@@ -92,10 +92,6 @@ export function AdminLogin({ onLogin, onCancel, error }: AdminLoginProps) {
             </button>
           </div>
         </form>
-
-        <p className="text-zinc-500 text-xs text-center mt-6">
-          Identifiants par défaut: admin / admin123
-        </p>
       </motion.div>
     </motion.div>
   );

@@ -36,8 +36,15 @@ export function createAdminRouter(pool: Pool, JWT_SECRET: string) {
         return res.status(400).json({ error: 'Username and password required' });
       }
 
-      const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
-      const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+      // SECURITY: Never provide default values for admin credentials in code.
+      // Force the application to fail if environment variables are missing.
+      const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
+      const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+      if (!ADMIN_USERNAME || !ADMIN_PASSWORD) {
+        console.error('FATAL ERROR: ADMIN_USERNAME or ADMIN_PASSWORD is not defined.');
+        return res.status(500).json({ error: 'Server configuration error' });
+      }
 
       if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
         return res.status(401).json({ error: 'Invalid credentials' });
