@@ -1,6 +1,4 @@
-import { getAuthHeader } from './client';
-
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const API_BASE = '/api';
 
 const getAdminAuthHeader = () => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
@@ -15,7 +13,10 @@ export const adminAPI = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password })
     });
-    if (!response.ok) throw new Error('Login failed');
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Identifiants invalides');
+    }
     return response.json();
   },
 
@@ -24,7 +25,7 @@ export const adminAPI = {
     const response = await fetch(`${API_BASE}/admin/products`, {
       headers: getAdminAuthHeader()
     });
-    if (!response.ok) throw new Error('Failed to fetch products');
+    if (!response.ok) throw new Error('Échec de la récupération des produits');
     return response.json();
   },
 
@@ -34,7 +35,7 @@ export const adminAPI = {
       headers: { ...getAdminAuthHeader(), 'Content-Type': 'application/json' },
       body: JSON.stringify(product)
     });
-    if (!response.ok) throw new Error('Failed to create product');
+    if (!response.ok) throw new Error('Échec de la création du produit');
     return response.json();
   },
 
@@ -44,7 +45,7 @@ export const adminAPI = {
       headers: { ...getAdminAuthHeader(), 'Content-Type': 'application/json' },
       body: JSON.stringify(product)
     });
-    if (!response.ok) throw new Error('Failed to update product');
+    if (!response.ok) throw new Error('Échec de la mise à jour du produit');
     return response.json();
   },
 
@@ -53,7 +54,7 @@ export const adminAPI = {
       method: 'DELETE',
       headers: getAdminAuthHeader()
     });
-    if (!response.ok) throw new Error('Failed to delete product');
+    if (!response.ok) throw new Error('Échec de la suppression du produit');
     return response.json();
   },
 
@@ -62,7 +63,7 @@ export const adminAPI = {
     const response = await fetch(`${API_BASE}/admin/orders`, {
       headers: getAdminAuthHeader()
     });
-    if (!response.ok) throw new Error('Failed to fetch orders');
+    if (!response.ok) throw new Error('Échec de la récupération des commandes');
     return response.json();
   },
 
@@ -70,7 +71,7 @@ export const adminAPI = {
     const response = await fetch(`${API_BASE}/admin/orders/${id}`, {
       headers: getAdminAuthHeader()
     });
-    if (!response.ok) throw new Error('Failed to fetch order');
+    if (!response.ok) throw new Error('Échec de la récupération de la commande');
     return response.json();
   },
 
@@ -80,7 +81,7 @@ export const adminAPI = {
       headers: { ...getAdminAuthHeader(), 'Content-Type': 'application/json' },
       body: JSON.stringify({ status })
     });
-    if (!response.ok) throw new Error('Failed to update order');
+    if (!response.ok) throw new Error('Échec de la mise à jour de la commande');
     return response.json();
   },
 
@@ -89,7 +90,7 @@ export const adminAPI = {
     const response = await fetch(`${API_BASE}/admin/posters`, {
       headers: getAdminAuthHeader()
     });
-    if (!response.ok) throw new Error('Failed to fetch posters');
+    if (!response.ok) throw new Error('Échec de la récupération des affiches');
     return response.json();
   },
 
@@ -99,7 +100,7 @@ export const adminAPI = {
       headers: { ...getAdminAuthHeader(), 'Content-Type': 'application/json' },
       body: JSON.stringify(poster)
     });
-    if (!response.ok) throw new Error('Failed to create poster');
+    if (!response.ok) throw new Error('Échec de la création de l\'affiche');
     return response.json();
   },
 
@@ -109,7 +110,7 @@ export const adminAPI = {
       headers: { ...getAdminAuthHeader(), 'Content-Type': 'application/json' },
       body: JSON.stringify(poster)
     });
-    if (!response.ok) throw new Error('Failed to update poster');
+    if (!response.ok) throw new Error('Échec de la mise à jour de l\'affiche');
     return response.json();
   },
 
@@ -118,7 +119,7 @@ export const adminAPI = {
       method: 'DELETE',
       headers: getAdminAuthHeader()
     });
-    if (!response.ok) throw new Error('Failed to delete poster');
+    if (!response.ok) throw new Error('Échec de la suppression de l\'affiche');
     return response.json();
   },
 
@@ -127,7 +128,7 @@ export const adminAPI = {
     const response = await fetch(`${API_BASE}/admin/screens`, {
       headers: getAdminAuthHeader()
     });
-    if (!response.ok) throw new Error('Failed to fetch screens');
+    if (!response.ok) throw new Error('Échec de la récupération des écrans');
     return response.json();
   },
 
@@ -137,7 +138,7 @@ export const adminAPI = {
       headers: { ...getAdminAuthHeader(), 'Content-Type': 'application/json' },
       body: JSON.stringify(screen)
     });
-    if (!response.ok) throw new Error('Failed to update screen');
+    if (!response.ok) throw new Error('Échec de la mise à jour de l\'écran');
     return response.json();
   },
 
@@ -146,7 +147,7 @@ export const adminAPI = {
     const response = await fetch(`${API_BASE}/admin/stats`, {
       headers: getAdminAuthHeader()
     });
-    if (!response.ok) throw new Error('Failed to fetch stats');
+    if (!response.ok) throw new Error('Échec de la récupération des statistiques');
     return response.json();
   }
 };
