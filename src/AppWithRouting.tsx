@@ -5,28 +5,24 @@ import { AdminLoginPage } from './components/AdminLoginPage';
 import { useStore } from './store';
 
 export function AppWithRouting() {
-  const [currentPage, setCurrentPage] = useState<'main' | 'admin'>('main');
+  // Changement de la page par défaut vers 'admin' pour l'affichage immédiat
+  const [currentPage, setCurrentPage] = useState<'main' | 'admin'>('admin');
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   
-  // Use store state directly instead of local state
   const storeScreens = useStore((state: any) => state.screens);
   const storePosters = useStore((state: any) => state.posters);
   const loadScreens = useStore((state: any) => state.loadScreens);
   const loadPosters = useStore((state: any) => state.loadPosters);
   const loadProducts = useStore((state: any) => state.loadProducts);
   
-  // Local state for admin UI
   const [screens, setScreens] = useState(storeScreens);
   const [posters, setPosters] = useState(storePosters);
 
-  // Load screens and posters from API on mount and set up polling
   useEffect(() => {
     loadScreens();
     loadPosters();
     loadProducts();
     
-    // Poll for updates more frequently to keep data fresh
-    // Faster polling (1 second) to ensure real-time updates
     const screensInterval = setInterval(() => {
       loadScreens();
     }, 1000);
@@ -37,16 +33,16 @@ export function AppWithRouting() {
 
     const productsInterval = setInterval(() => {
       loadProducts();
-    }, 2000); // Products can be slightly slower
+    }, 2000);
     
-    // Vérifier l'URL et le token au chargement
     const checkPath = () => {
       const path = window.location.pathname;
       const token = localStorage.getItem('adminToken');
       
-      if (path === '/admin' || path === '/admin/') {
+      // On reste sur admin si c'est le souhait de l'utilisateur, 
+      // ou si l'URL contient /admin
+      if (path === '/admin' || path === '/admin/' || currentPage === 'admin') {
         setCurrentPage('admin');
-        // Si on est sur /admin et qu'il y a un token, on reste connecté
         if (token) {
           setIsAdminLoggedIn(true);
         }
@@ -57,7 +53,6 @@ export function AppWithRouting() {
 
     checkPath();
 
-    // Écouter les changements d'URL
     const handlePopState = () => {
       checkPath();
     };
@@ -69,9 +64,8 @@ export function AppWithRouting() {
       clearInterval(postersInterval);
       clearInterval(productsInterval);
     };
-  }, [loadScreens, loadPosters, loadProducts]);
+  }, [loadScreens, loadPosters, loadProducts, currentPage]);
 
-  // Sync store data to local state whenever store updates
   useEffect(() => {
     setScreens(storeScreens);
   }, [storeScreens]);
