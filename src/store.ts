@@ -25,7 +25,7 @@ export const useStore = create((set) => ({
   
   // Interaction State
   canInteract: false,
-  interactionType: null, // 'pc', 'clothes', 'door', 'switch'
+  interactionType: null, 
   interactionTarget: null,
   interactionText: '',
   setInteraction: (canInteract: boolean, type: string | null, target: string | null, text: string = '') => set({ canInteract, interactionType: type, interactionTarget: target, interactionText: text }),
@@ -99,55 +99,37 @@ export const useStore = create((set) => ({
     ).filter((item: any) => item.quantity > 0),
   })),
   clearCart: () => set({ cart: [] }),
-  getCartTotal: () => {
-    const state = useStore.getState() as any;
-    return state.cart.reduce((total: number, item: any) => total + (item.price * item.quantity), 0);
-  },
-  getCartCount: () => {
-    const state = useStore.getState() as any;
-    return state.cart.reduce((count: number, item: any) => count + item.quantity, 0);
-  },
 
   // Async Actions
   loadProducts: async () => {
     try {
-      set({ isLoading: true });
       const data = await apiClient.getProducts();
       set({ products: data });
     } catch (error) {
       console.error('Failed to load products:', error);
-    } finally {
-      set({ isLoading: false });
     }
   },
 
   loadPosters: async () => {
     try {
-      set({ isLoading: true });
       const data = await apiClient.getPosters();
       set({ posters: data });
     } catch (error) {
       console.error('Failed to load posters:', error);
-    } finally {
-      set({ isLoading: false });
     }
   },
 
   loadOrders: async () => {
     try {
-      set({ isLoading: true });
       const data = await apiClient.getOrders();
       set({ orders: data });
     } catch (error) {
       console.error('Failed to load orders:', error);
-    } finally {
-      set({ isLoading: false });
     }
   },
 
   loadScreens: async () => {
     try {
-      set({ isLoading: true });
       const data = await apiClient.getScreens();
       if (data && data.length > 0) {
         const screenMap: any = {
@@ -155,8 +137,6 @@ export const useStore = create((set) => ({
           pcMain: null,
           tv: null
         };
-        
-        // Override with database values
         data.forEach((screen: any) => {
           screenMap[screen.id] = screen.image;
         });
@@ -164,8 +144,6 @@ export const useStore = create((set) => ({
       }
     } catch (error) {
       console.error('Failed to load screens:', error);
-    } finally {
-      set({ isLoading: false });
     }
   },
 
@@ -218,18 +196,6 @@ export const useStore = create((set) => ({
     }
   },
 
-  deletePoster: async (id: string) => {
-    try {
-      await apiClient.deletePoster(id);
-      set((state: any) => ({
-        posters: state.posters.filter((p: any) => p.id !== id)
-      }));
-    } catch (error) {
-      console.error('Failed to delete poster:', error);
-      throw error;
-    }
-  },
-
   updateScreen: async (id: string, image: string) => {
     try {
       const updated = await apiClient.updateScreen(id, image);
@@ -276,28 +242,9 @@ export const useStore = create((set) => ({
     }
   },
 
-  getGameScores: async (gameName: string) => {
-    try {
-      return await apiClient.getGameScores(gameName);
-    } catch (error) {
-      console.error('Failed to get game scores:', error);
-      throw error;
-    }
-  },
-
-  // Game Scores State
-  gameScores: {} as Record<string, any[]>,
-  setGameScores: (gameName: string, scores: any[]) => set((state: any) => ({
-    gameScores: { ...state.gameScores, [gameName]: scores },
-  })),
-
-  // Fetch and cache game scores
   fetchGameScores: async (gameName: string) => {
     try {
       const scores = await apiClient.getGameScores(gameName);
-      set((state: any) => ({
-        gameScores: { ...state.gameScores, [gameName]: scores },
-      }));
       return scores;
     } catch (error) {
       console.error('Failed to fetch game scores:', error);
@@ -305,38 +252,6 @@ export const useStore = create((set) => ({
     }
   },
 
-  // Admin Authentication
   isAdminAuthenticated: false,
-  adminAuthError: '',
-  setAdminAuthenticated: (authenticated: boolean) => set({ isAdminAuthenticated: authenticated, adminAuthError: '' }),
-  setAdminAuthError: (error: string) => set({ adminAuthError: error }),
-  
-  authenticateAdmin: (username: string, password: string) => {
-    // Default credentials - in production, this should be validated against a backend
-    const ADMIN_USERNAME = 'admin';
-    const ADMIN_PASSWORD = 'admin123';
-    
-    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-      set({ isAdminAuthenticated: true, adminAuthError: '' });
-      // Store auth token in sessionStorage (cleared when browser closes)
-      sessionStorage.setItem('adminToken', 'authenticated');
-      return true;
-    } else {
-      set({ adminAuthError: 'Identifiant ou mot de passe incorrect' });
-      return false;
-    }
-  },
-
-  logoutAdmin: () => {
-    set({ isAdminAuthenticated: false, adminAuthError: '' });
-    sessionStorage.removeItem('adminToken');
-  },
-
-  // Check if admin is already authenticated (on app load)
-  checkAdminAuth: () => {
-    const token = sessionStorage.getItem('adminToken');
-    if (token) {
-      set({ isAdminAuthenticated: true });
-    }
-  },
+  setAdminAuthenticated: (authenticated: boolean) => set({ isAdminAuthenticated: authenticated }),
 }));
