@@ -100,18 +100,16 @@ export function Player({ bounds = { x: [-10, 10], z: [-10, 10] }, room = 'outsid
     if (keys.a) moveX -= 1;
     if (keys.d) moveX += 1;
 
-    let inputMag = 1;
+    let inputMag = 0;
 
     if (joystickMove.x !== 0 || joystickMove.y !== 0) {
       moveX = joystickMove.x;
       moveZ = -joystickMove.y;
-      const mag = Math.sqrt(moveX * moveX + moveZ * moveZ);
-      if (mag > 1) {
-        moveX /= mag;
-        moveZ /= mag;
+      inputMag = Math.sqrt(moveX * moveX + moveZ * moveZ);
+      if (inputMag > 1) {
+        moveX /= inputMag;
+        moveZ /= inputMag;
         inputMag = 1;
-      } else {
-        inputMag = mag;
       }
       running = false;
     } else {
@@ -120,52 +118,65 @@ export function Player({ bounds = { x: [-10, 10], z: [-10, 10] }, room = 'outsid
         moveVector.normalize();
         moveX = moveVector.x;
         moveZ = moveVector.z;
+        inputMag = 1;
       }
     }
 
     let targetVelocityX = 0;
     let targetVelocityZ = 0;
 
-    if (moveX !== 0 || moveZ !== 0) {
+    if (inputMag > 0) {
       const cameraEuler = new THREE.Euler().setFromQuaternion(camera.quaternion, 'YXZ');
       const moveVector = new THREE.Vector3(moveX, 0, moveZ);
       moveVector.applyAxisAngle(new THREE.Vector3(0, 1, 0), cameraEuler.y);
       
-      const maxSpeed = running ? 6 : 4;
+      const maxSpeed = running ? 7 : 4.5;
       const speed = maxSpeed * inputMag;
       
       targetVelocityX = moveVector.x * speed;
       targetVelocityZ = moveVector.z * speed;
 
-      const targetRotation = Math.atan2(targetVelocityX, targetVelocityZ);
+      // Smooth Rotation
+      const targetRotation = Math.atan2(moveVector.x, moveVector.z);
       let diff = targetRotation - playerRotation;
       while (diff < -Math.PI) diff += Math.PI * 2;
       while (diff > Math.PI) diff -= Math.PI * 2;
-      setPlayerRotation(playerRotation + diff * 12 * delta);
+      setPlayerRotation(playerRotation + diff * 10 * delta);
 
       setAnimState(running ? 'run' : 'walk');
     } else {
       setAnimState('idle');
     }
 
-    const accel = isGrounded.current ? 10 : 3;
-    velocity.current.x = THREE.MathUtils.lerp(velocity.current.x, targetVelocityX, accel * delta);
-    velocity.current.z = THREE.MathUtils.lerp(velocity.current.z, targetVelocityZ, accel * delta);
+    // Acceleration and Friction
+    const accel = isGrounded.current ? 15 : 5;
+    const friction = isGrounded.current ? 12 : 2;
+    
+    if (inputMag > 0) {
+      velocity.current.x = THREE.MathUtils.lerp(velocity.current.x, targetVelocityX, accel * delta);
+      velocity.current.z = THREE.MathUtils.lerp(velocity.current.z, targetVelocityZ, accel * delta);
+    } else {
+      velocity.current.x = THREE.MathUtils.lerp(velocity.current.x, 0, friction * delta);
+      velocity.current.z = THREE.MathUtils.lerp(velocity.current.z, 0, friction * delta);
+    }
 
+    // Jump Logic
     if ((keys.space || isJumping) && isGrounded.current) {
-      velocity.current.y = 8;
+      velocity.current.y = 8.5;
       isGrounded.current = false;
       setAnimState('jump');
     }
 
     if (!isGrounded.current) {
-      velocity.current.y -= 25 * delta;
+      velocity.current.y -= 28 * delta; // Gravity
     }
 
+    // Apply Velocity
     position.current.x += velocity.current.x * delta;
     position.current.y += velocity.current.y * delta;
     position.current.z += velocity.current.z * delta;
 
+    // Floor Detection
     let floorY = -2;
     if (room === 'outside') {
       if (Math.abs(position.current.x) < 4 && position.current.z > -2 && position.current.z < 2) {
@@ -175,60 +186,73 @@ export function Player({ bounds = { x: [-10, 10], z: [-10, 10] }, room = 'outsid
       }
     }
     
-    const targetY = floorY;
-
-    if (position.current.y <= targetY) {
-      position.current.y = targetY;
+    if (position.current.y <= floorY) {
+      position.current.y = floorY;
       velocity.current.y = 0;
       isGrounded.current = true;
-      if (animState === 'jump') setAnimState('idle');
     } else {
       isGrounded.current = false;
     }
 
-    // REFINED COLLISION BOUNDS
+    // Collisions (Keep existing logic but refined)
     let roomBounds = { minX: -6.6, maxX: 6.6, minZ: -6.6, maxZ: 6.6 };
     let obstacles: { minX: number, maxX: number, minZ: number, maxZ: number }[] = [];
 
-    if (room === 'inside') { // Gaming Room
+    if (room === 'inside') {
       obstacles = [
-        { minX: 0.5, maxX: 6.5, minZ: -6.25, maxZ: -3.75 }, // Desk
-        { minX: -6.6, maxX: -5.0, minZ: -4.0, maxZ: 0.0 }, // Sofa
-        { minX: -2.25, maxX: -0.75, minZ: -5.75, maxZ: -4.25 }, // Armchair
-        { minX: 5.0, maxX: 6.8, minZ: 4.1, maxZ: 5.9 }, // Freezer
-        { minX: 5.5, maxX: 6.5, minZ: -1.0, maxZ: 3.0 }, // TV Table
-        { minX: -3.0, maxX: -2.0, minZ: 5.0, maxZ: 6.0 }, // Cat House
+        { minX: 0.5, maxX: 6.5, minZ: -6.25, maxZ: -3.75 },
+        { minX: -6.6, maxX: -5.0, minZ: -4.0, maxZ: 0.0 },
+        { minX: -2.25, maxX: -0.75, minZ: -5.75, maxZ: -4.25 },
+        { minX: 5.0, maxX: 6.8, minZ: 4.1, maxZ: 5.9 },
+        { minX: 5.5, maxX: 6.5, minZ: -1.0, maxZ: 3.0 },
+        { minX: -3.0, maxX: -2.0, minZ: 5.0, maxZ: 6.0 },
       ];
     } else if (room === 'bedroom') {
       obstacles = [
-        { minX: -4.5, maxX: -0.5, minZ: -6.5, maxZ: -1.5 }, // Bed
-        { minX: -6.5, maxX: -0.5, minZ: 6.3, maxZ: 7.3 }, // Black Display
-        { minX: 0.9, maxX: 6.1, minZ: 6.0, maxZ: 7.0 }, // Clothing Rack
-        { minX: 6.3, maxX: 7.3, minZ: -3.5, maxZ: 3.5 }, // Right Wall Shelves
-        { minX: -7.3, maxX: -6.3, minZ: -3.5, maxZ: 3.5 }, // Left Wall Shelves
+        { minX: -4.5, maxX: -0.5, minZ: -6.5, maxZ: -1.5 },
+        { minX: -6.5, maxX: -0.5, minZ: 6.3, maxZ: 7.3 },
+        { minX: 0.9, maxX: 6.1, minZ: 6.0, maxZ: 7.0 },
+        { minX: 6.3, maxX: 7.3, minZ: -3.5, maxZ: 3.5 },
+        { minX: -7.3, maxX: -6.3, minZ: -3.5, maxZ: 3.5 },
       ];
     } else if (room === 'bathroom') {
       roomBounds = { minX: -4.6, maxX: 4.6, minZ: -4.6, maxZ: 4.6 };
       obstacles = [
-        { minX: 2.5, maxX: 5.0, minZ: -5.0, maxZ: -2.5 }, // Shower
-        { minX: -4.1, maxX: -2.9, minZ: -0.75, maxZ: 0.75 }, // Toilet
-        { minX: 4.0, maxX: 5.0, minZ: -1.0, maxZ: 1.0 }, // Sink
+        { minX: 2.5, maxX: 5.0, minZ: -5.0, maxZ: -2.5 },
+        { minX: -4.1, maxX: -2.9, minZ: -0.75, maxZ: 0.75 },
+        { minX: 4.0, maxX: 5.0, minZ: -1.0, maxZ: 1.0 },
       ];
     } else if (room === 'hallway') {
       roomBounds = { minX: -3.6, maxX: 3.6, minZ: -3.6, maxZ: 3.6 };
     } else if (room === 'studio') {
       obstacles = [
-        { minX: -3.0, maxX: 3.0, minZ: -3.5, maxZ: -0.5 }, // Work Table
-        { minX: -6.75, maxX: -5.25, minZ: -3.5, maxZ: -0.5 }, // Wardrobe
-        { minX: -6.5, maxX: -4.5, minZ: -5.75, maxZ: -4.25 }, // Small Table
-        { minX: 4.0, maxX: 6.0, minZ: -5.25, maxZ: -4.75 }, // T-Shirt Rack
+        { minX: -3.0, maxX: 3.0, minZ: -3.5, maxZ: -0.5 },
+        { minX: -6.75, maxX: -5.25, minZ: -3.5, maxZ: -0.5 },
+        { minX: -6.5, maxX: -4.5, minZ: -5.75, maxZ: -4.25 },
+        { minX: 4.0, maxX: 6.0, minZ: -5.25, maxZ: -4.75 },
       ];
     } else if (room === 'outside') {
       roomBounds = { minX: -5.5, maxX: 5.5, minZ: -4.5, maxZ: 9.5 };
       obstacles = [
-        { minX: -4, maxX: 4, minZ: -2, maxZ: 2 }, // House base
-        { minX: -2, maxX: 2, minZ: 4, maxZ: 8 }, // Car
+        { minX: -4, maxX: 4, minZ: -2, maxZ: 2 },
+        { minX: -2, maxX: 2, minZ: 4, maxZ: 8 },
       ];
+    }
+
+    const playerRadius = 0.3;
+    for (const obs of obstacles) {
+      if (position.current.x + playerRadius > obs.minX && position.current.x - playerRadius < obs.maxX &&
+          position.current.z + playerRadius > obs.minZ && position.current.z - playerRadius < obs.maxZ) {
+        const dx1 = Math.abs(position.current.x + playerRadius - obs.minX);
+        const dx2 = Math.abs(position.current.x - playerRadius - obs.maxX);
+        const dz1 = Math.abs(position.current.z + playerRadius - obs.minZ);
+        const dz2 = Math.abs(position.current.z - playerRadius - obs.maxZ);
+        const min = Math.min(dx1, dx2, dz1, dz2);
+        if (min === dx1) position.current.x = obs.minX - playerRadius;
+        else if (min === dx2) position.current.x = obs.maxX + playerRadius;
+        else if (min === dz1) position.current.z = obs.minZ - playerRadius;
+        else if (min === dz2) position.current.z = obs.maxZ + playerRadius;
+      }
     }
 
     if (position.current.x < roomBounds.minX) position.current.x = roomBounds.minX;
@@ -236,54 +260,24 @@ export function Player({ bounds = { x: [-10, 10], z: [-10, 10] }, room = 'outsid
     if (position.current.z < roomBounds.minZ) position.current.z = roomBounds.minZ;
     if (position.current.z > roomBounds.maxZ) position.current.z = roomBounds.maxZ;
 
-    const playerRadius = 0.35; // Rayon ajusté pour plus de précision
-    for (const obs of obstacles) {
-      if (
-        position.current.x + playerRadius > obs.minX &&
-        position.current.x - playerRadius < obs.maxX &&
-        position.current.z + playerRadius > obs.minZ &&
-        position.current.z - playerRadius < obs.maxZ
-      ) {
-        const distLeft = (position.current.x + playerRadius) - obs.minX;
-        const distRight = obs.maxX - (position.current.x - playerRadius);
-        const distTop = (position.current.z + playerRadius) - obs.minZ;
-        const distBottom = obs.maxZ - (position.current.z - playerRadius);
-
-        const minDist = Math.min(distLeft, distRight, distTop, distBottom);
-        const epsilon = 0.01;
-
-        if (minDist === distLeft) {
-          position.current.x = obs.minX - playerRadius - epsilon;
-          velocity.current.x = 0;
-        } else if (minDist === distRight) {
-          position.current.x = obs.maxX + playerRadius + epsilon;
-          velocity.current.x = 0;
-        } else if (minDist === distTop) {
-          position.current.z = obs.minZ - playerRadius - epsilon;
-          velocity.current.z = 0;
-        } else if (minDist === distBottom) {
-          position.current.z = obs.maxZ + playerRadius + epsilon;
-          velocity.current.z = 0;
-        }
-      }
-    }
-
     groupRef.current.position.copy(position.current);
     groupRef.current.rotation.y = playerRotation;
 
     setPlayerPosition([position.current.x, position.current.y, position.current.z]);
 
+    // Camera Follow
     const moveDelta = position.current.clone().sub(prevPosition.current);
     prevPosition.current.copy(position.current);
-
     if (controls) {
       controls.target.add(moveDelta);
       camera.position.add(moveDelta);
       controls.update();
     }
 
+    // Animations
     animTime.current += delta;
     const t = animTime.current;
+    const currentSpeed = Math.sqrt(velocity.current.x ** 2 + velocity.current.z ** 2);
 
     if (leftLeg.current && rightLeg.current && leftArm.current && rightArm.current && torso.current && head.current) {
       if (animState === 'idle') {
@@ -294,34 +288,23 @@ export function Player({ bounds = { x: [-10, 10], z: [-10, 10] }, room = 'outsid
         rightLeg.current.rotation.x = THREE.MathUtils.lerp(rightLeg.current.rotation.x, 0, 0.1);
         leftArm.current.rotation.x = THREE.MathUtils.lerp(leftArm.current.rotation.x, 0, 0.1);
         rightArm.current.rotation.x = THREE.MathUtils.lerp(rightArm.current.rotation.x, 0, 0.1);
-        leftArm.current.rotation.z = THREE.MathUtils.lerp(leftArm.current.rotation.z, 0, 0.1);
-        rightArm.current.rotation.z = THREE.MathUtils.lerp(rightArm.current.rotation.z, 0, 0.1);
       } else if (animState === 'walk' || animState === 'run') {
-        torso.current.position.y = THREE.MathUtils.lerp(torso.current.position.y, 0.1, 0.1);
-        head.current.position.y = THREE.MathUtils.lerp(head.current.position.y, 0.7, 0.1);
-        const currentSpeed = Math.sqrt(velocity.current.x * velocity.current.x + velocity.current.z * velocity.current.z);
-        const speedMult = currentSpeed * 2.5;
-        const angle = Math.min(0.8, currentSpeed * 0.15);
+        const speedMult = currentSpeed * 2.2;
+        const angle = Math.min(0.8, currentSpeed * 0.18);
+        const bob = Math.abs(Math.sin(t * speedMult)) * 0.05;
+        
+        torso.current.position.y = 0.1 + bob;
+        head.current.position.y = 0.7 + bob;
+        
         leftLeg.current.rotation.x = Math.sin(t * speedMult) * angle;
         rightLeg.current.rotation.x = Math.sin(t * speedMult + Math.PI) * angle;
-        leftArm.current.rotation.x = Math.sin(t * speedMult + Math.PI) * angle;
-        rightArm.current.rotation.x = Math.sin(t * speedMult) * angle;
-        leftArm.current.rotation.z = 0.1;
-        rightArm.current.rotation.z = -0.1;
+        leftArm.current.rotation.x = Math.sin(t * speedMult + Math.PI) * angle * 0.8;
+        rightArm.current.rotation.x = Math.sin(t * speedMult) * angle * 0.8;
       } else if (animState === 'jump') {
-        torso.current.position.y = THREE.MathUtils.lerp(torso.current.position.y, 0.1, 0.1);
-        head.current.position.y = THREE.MathUtils.lerp(head.current.position.y, 0.7, 0.1);
-        if (velocity.current.y > 0) {
-          leftLeg.current.rotation.x = THREE.MathUtils.lerp(leftLeg.current.rotation.x, -0.4, 0.2);
-          rightLeg.current.rotation.x = THREE.MathUtils.lerp(rightLeg.current.rotation.x, 0.2, 0.2);
-          leftArm.current.rotation.x = THREE.MathUtils.lerp(leftArm.current.rotation.x, -0.8, 0.2);
-          rightArm.current.rotation.x = THREE.MathUtils.lerp(rightArm.current.rotation.x, -0.8, 0.2);
-        } else {
-          leftLeg.current.rotation.x = THREE.MathUtils.lerp(leftLeg.current.rotation.x, 0.1, 0.2);
-          rightLeg.current.rotation.x = THREE.MathUtils.lerp(rightLeg.current.rotation.x, 0.1, 0.2);
-          leftArm.current.rotation.x = THREE.MathUtils.lerp(leftArm.current.rotation.x, 0.5, 0.2);
-          rightArm.current.rotation.x = THREE.MathUtils.lerp(rightArm.current.rotation.x, 0.5, 0.2);
-        }
+        leftLeg.current.rotation.x = THREE.MathUtils.lerp(leftLeg.current.rotation.x, velocity.current.y > 0 ? -0.5 : 0.2, 0.1);
+        rightLeg.current.rotation.x = THREE.MathUtils.lerp(rightLeg.current.rotation.x, velocity.current.y > 0 ? 0.3 : 0.2, 0.1);
+        leftArm.current.rotation.x = THREE.MathUtils.lerp(leftArm.current.rotation.x, -1, 0.1);
+        rightArm.current.rotation.x = THREE.MathUtils.lerp(rightArm.current.rotation.x, -1, 0.1);
       }
     }
 
