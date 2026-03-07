@@ -117,7 +117,7 @@ export function Bedroom({ onBack, posters, isNeonMode, onToggleNeon }: { onBack:
 
       {/* Above Bed Decor */}
       <group position={[-4.0, 2.5, -6.9]}>
-        <Poster position={[0, 0, 0]} color="#00ccff" text="HOOPS" size={[1, 1.5]} image={posters?.find(p => p.id === 3)?.image} />
+        <Poster key={`bedroom-poster-3-${posters?.find(p => p.id === 3)?.image}`} position={[0, 0, 0]} color="#00ccff" text="HOOPS" size={[1, 1.5]} image={posters?.find(p => p.id === 3)?.image} />
       </group>
       <group position={[-1.0, 2.5, -6.9]}>
         <Poster position={[0, 0, 0]} color="#ff00cc" text="JORDAN" size={[1, 1.5]} />

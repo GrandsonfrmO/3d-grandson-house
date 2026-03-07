@@ -36,23 +36,18 @@ function CameraController({ gameState }: { gameState: GameState }) {
       position.set(0, 1, -2);
       target.set(0, 0.5, -5.2);
     } else if (gameState === 'inside') {
-      // Gaming Room: Behind the door (z=7), elevated for plunging view
       position.set(0, 10, 16);
       target.set(0, 0, 0);
     } else if (gameState === 'studio') {
-      // Studio: Behind the door (z=7), elevated for plunging view
       position.set(0, 10, 16);
       target.set(0, 0, 0);
     } else if (gameState === 'bedroom') {
-      // Bedroom: Behind the door (z=5), elevated
       position.set(0, 8, 12);
       target.set(0, 0, 0);
     } else if (gameState === 'bathroom') {
-      // Bathroom: Behind the door (z=5), elevated
       position.set(0, 8, 12);
       target.set(0, 0, 0);
     } else if (gameState === 'hallway') {
-      // Hallway: Behind the door (z=4), elevated
       position.set(0, 8, 10);
       target.set(0, 0, 0);
     }
@@ -66,14 +61,6 @@ function CameraController({ gameState }: { gameState: GameState }) {
 
   return null;
 }
-
-const INITIAL_POSTERS = [
-  { id: 1, room: 'Gaming Room', location: 'Main Wall (Above Desk)', image: 'https://picsum.photos/seed/poster1/800/400', status: 'Active' },
-  { id: 2, room: 'Gaming Room', location: 'Side Wall (Near Door)', image: 'https://picsum.photos/seed/poster2/400/600', status: 'Active' },
-  { id: 3, room: 'Bedroom', location: 'Above Bed', image: 'https://picsum.photos/seed/poster3/600/400', status: 'Active' },
-  { id: 4, room: 'Hallway', location: 'Corridor Left', image: 'https://picsum.photos/seed/poster4/400/800', status: 'Active' },
-  { id: 5, room: 'Bathroom', location: 'Mirror Adjacent', image: 'https://picsum.photos/seed/poster5/400/400', status: 'Active' },
-];
 
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean, error: Error | null}> {
   constructor(props: {children: React.ReactNode}) {
@@ -132,55 +119,12 @@ export default function App() {
   const setShirtColor = useStore((state: any) => state.setShirtColor);
   const setPantsColor = useStore((state: any) => state.setPantsColor);
 
-  // Load data from API
-  const loadProducts = useStore((state: any) => state.loadProducts);
-  const loadPosters = useStore((state: any) => state.loadPosters);
-  const loadOrders = useStore((state: any) => state.loadOrders);
-  const loadScreens = useStore((state: any) => state.loadScreens);
-  const storeProducts = useStore((state: any) => state.products);
-  const storePosters = useStore((state: any) => state.posters);
-  const storeScreens = useStore((state: any) => state.screens);
-
-  // Admin authentication
-  const [adminClickCount, setAdminClickCount] = useState(0);
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  // Use store data directly
+  const posters = useStore((state: any) => state.posters);
+  const screens = useStore((state: any) => state.screens);
 
   const [isNeonMode, setIsNeonMode] = useState(false);
-  const [screens, setScreens] = useState({
-    pcLeft: 'https://picsum.photos/seed/pcleft/400/300',
-    pcMain: 'https://picsum.photos/seed/pcmain/800/600',
-    tv: 'https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif'
-  });
-  const [posters, setPosters] = useState(INITIAL_POSTERS);
-
   const [isTransitioning, setIsTransitioning] = useState(false);
-
-  // Load data on mount
-  useEffect(() => {
-    loadProducts();
-    loadPosters();
-    loadOrders();
-    loadScreens();
-  }, [loadProducts, loadPosters, loadOrders, loadScreens]);
-
-  // Sync store data to local state
-  useEffect(() => {
-    if (storeProducts.length > 0) {
-      // Products are in store, ShopUI will use them directly
-    }
-  }, [storeProducts]);
-
-  useEffect(() => {
-    if (storePosters.length > 0) {
-      setPosters(storePosters);
-    }
-  }, [storePosters]);
-
-  useEffect(() => {
-    if (storeScreens && Object.keys(storeScreens).length > 0) {
-      setScreens(storeScreens);
-    }
-  }, [storeScreens]);
 
   const handleAction = () => {
     if (!canInteract) return;

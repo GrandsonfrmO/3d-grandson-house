@@ -13,6 +13,7 @@ export function AppWithRouting() {
   const storePosters = useStore((state: any) => state.posters);
   const loadScreens = useStore((state: any) => state.loadScreens);
   const loadPosters = useStore((state: any) => state.loadPosters);
+  const loadProducts = useStore((state: any) => state.loadProducts);
   
   // Local state for admin UI
   const [screens, setScreens] = useState(storeScreens);
@@ -22,6 +23,7 @@ export function AppWithRouting() {
   useEffect(() => {
     loadScreens();
     loadPosters();
+    loadProducts();
     
     // Poll for updates more frequently to keep data fresh
     // Faster polling (1 second) to ensure real-time updates
@@ -32,6 +34,10 @@ export function AppWithRouting() {
     const postersInterval = setInterval(() => {
       loadPosters();
     }, 1000);
+
+    const productsInterval = setInterval(() => {
+      loadProducts();
+    }, 2000); // Products can be slightly slower
     
     // Vérifier l'URL et le token au chargement
     const checkPath = () => {
@@ -61,8 +67,9 @@ export function AppWithRouting() {
       window.removeEventListener('popstate', handlePopState);
       clearInterval(screensInterval);
       clearInterval(postersInterval);
+      clearInterval(productsInterval);
     };
-  }, [loadScreens, loadPosters]);
+  }, [loadScreens, loadPosters, loadProducts]);
 
   // Sync store data to local state whenever store updates
   useEffect(() => {
