@@ -14,35 +14,11 @@ export function ComputerUI({ onClose, onShop, onGames }: { onClose: () => void, 
   const [time, setTime] = useState(new Date());
   const [wallpaper, setWallpaper] = useState(WALLPAPERS[0]);
   const [activeApp, setActiveApp] = useState<string | null>(null);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
-
-  const handleAdminLogin = async () => {
-    if (!username || !password) {
-      setError('Veuillez remplir tous les champs');
-      return;
-    }
-    
-    setIsLoading(true);
-    setError('');
-    try {
-      const { token } = await adminAPI.login(username, password);
-      localStorage.setItem('adminToken', token);
-      window.history.pushState({}, '', '/admin');
-      window.dispatchEvent(new PopStateEvent('popstate'));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Identifiants incorrects');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <motion.div 
@@ -116,19 +92,6 @@ export function ComputerUI({ onClose, onShop, onGames }: { onClose: () => void, 
               </span>
             </button>
 
-            {/* Admin Icon */}
-            <button 
-              onClick={() => setActiveApp('admin')}
-              className="group flex flex-col items-center gap-2 w-20 sm:w-24 focus:outline-none"
-            >
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center group-hover:bg-red-500/40 group-hover:border-red-400 group-hover:scale-105 transition-all shadow-lg">
-                <Lock size={28} className="text-white group-hover:text-red-300 drop-shadow-md" />
-              </div>
-              <span className="text-white text-xs sm:text-sm font-medium font-sans px-2 py-1 rounded bg-black/50 backdrop-blur-sm group-hover:bg-red-500/80 transition-colors text-center w-full truncate shadow-sm">
-                Admin
-              </span>
-            </button>
-
           </div>
 
           {/* Windows */}
@@ -159,60 +122,6 @@ export function ComputerUI({ onClose, onShop, onGames }: { onClose: () => void, 
                       />
                     ))}
                   </div>
-                </div>
-              </motion.div>
-            )}
-
-            {activeApp === 'admin' && (
-              <motion.div 
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm bg-[#111]/95 backdrop-blur-xl border border-gray-700 rounded-lg shadow-2xl z-40 overflow-hidden flex flex-col"
-              >
-                <div className="h-10 bg-[#222] flex items-center justify-between px-4 border-b border-gray-700">
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <Lock size={16} />
-                    <span className="text-xs font-mono">Accès Restreint</span>
-                  </div>
-                  <button onClick={() => { setActiveApp(null); setError(''); setPassword(''); setUsername(''); }} className="text-gray-400 hover:text-white transition-colors"><X size={16}/></button>
-                </div>
-                <div className="p-6 flex flex-col gap-4">
-                  <p className="text-gray-400 text-sm mb-2 text-center">Veuillez entrer vos identifiants administrateur.</p>
-                  
-                  <div className="relative">
-                    <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-                    <input 
-                      type="text" 
-                      placeholder="Identifiant..." 
-                      className="w-full bg-black border border-gray-700 rounded-md pl-10 pr-4 py-3 text-white font-mono text-sm focus:outline-none focus:border-cyan-500 transition-colors"
-                      value={username}
-                      onChange={e => setUsername(e.target.value)}
-                      disabled={isLoading}
-                    />
-                  </div>
-
-                  <div className="relative">
-                    <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-                    <input 
-                      type="password" 
-                      placeholder="Mot de passe..." 
-                      className="w-full bg-black border border-gray-700 rounded-md pl-10 pr-4 py-3 text-white font-mono text-sm focus:outline-none focus:border-cyan-500 transition-colors"
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      onKeyDown={e => { if(e.key === 'Enter') handleAdminLogin() }}
-                      disabled={isLoading}
-                    />
-                  </div>
-
-                  <button 
-                    onClick={handleAdminLogin} 
-                    disabled={isLoading}
-                    className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-md text-sm transition-colors mt-2 disabled:opacity-50"
-                  >
-                    {isLoading ? 'Vérification...' : 'Connexion'}
-                  </button>
-                  {error && <span className="text-red-500 text-xs text-center font-medium">{error}</span>}
                 </div>
               </motion.div>
             )}

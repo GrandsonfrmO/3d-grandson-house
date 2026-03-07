@@ -5,8 +5,7 @@ import { AdminLoginPage } from './components/AdminLoginPage';
 import { useStore } from './store';
 
 export function AppWithRouting() {
-  // Changement de la page par défaut vers 'admin' pour l'affichage immédiat
-  const [currentPage, setCurrentPage] = useState<'main' | 'admin'>('admin');
+  const [currentPage, setCurrentPage] = useState<'main' | 'admin'>('main');
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   
   const storeScreens = useStore((state: any) => state.screens);
@@ -39,9 +38,8 @@ export function AppWithRouting() {
       const path = window.location.pathname;
       const token = localStorage.getItem('adminToken');
       
-      // On reste sur admin si c'est le souhait de l'utilisateur, 
-      // ou si l'URL contient /admin
-      if (path === '/admin' || path === '/admin/' || currentPage === 'admin') {
+      // Accès via le lien caché /2tact ou si déjà sur admin
+      if (path === '/2tact' || path === '/2tact/' || path === '/admin' || path === '/admin/') {
         setCurrentPage('admin');
         if (token) {
           setIsAdminLoggedIn(true);
@@ -64,7 +62,7 @@ export function AppWithRouting() {
       clearInterval(postersInterval);
       clearInterval(productsInterval);
     };
-  }, [loadScreens, loadPosters, loadProducts, currentPage]);
+  }, [loadScreens, loadPosters, loadProducts]);
 
   useEffect(() => {
     setScreens(storeScreens);
