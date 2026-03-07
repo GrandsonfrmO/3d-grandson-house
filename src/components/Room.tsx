@@ -115,7 +115,7 @@ export function Room({ onPcClick, onDoorClick, onExitClick, screens, posters, is
         </Text>
       </group>
 
-      {/* Trash Can (Moved to corner) */}
+      {/* Trash Can */}
       <group position={[-6.5, -1.5, 6.5]}>
         <mesh castShadow>
           <cylinderGeometry args={[0.4, 0.3, 1, 16]} />
@@ -127,11 +127,11 @@ export function Room({ onPcClick, onDoorClick, onExitClick, screens, posters, is
         </mesh>
       </group>
 
-      {/* Black Cat (Moved to right wall area) */}
-      <Cat position={[6.2, -1.8, 3.5]} rotation={[0, -Math.PI / 2, 0]} />
+      {/* Black Cat (Moved to front wall, right of door) */}
+      <Cat position={[2.2, -1.8, 5.8]} rotation={[0, Math.PI, 0]} />
 
-      {/* Cat Food Bowl (Against right wall) */}
-      <group position={[6.7, -1.95, 4.2]}>
+      {/* Cat Food Bowl (Against front wall) */}
+      <group position={[3.5, -1.95, 6.6]}>
         <mesh castShadow>
           <cylinderGeometry args={[0.15, 0.2, 0.1, 16]} />
           <meshStandardMaterial color="#ff0055" />
@@ -142,8 +142,8 @@ export function Room({ onPcClick, onDoorClick, onExitClick, screens, posters, is
         </mesh>
       </group>
 
-      {/* Cat House (In the corner) */}
-      <group position={[6.3, -1.5, 3.0]} rotation={[0, -Math.PI / 2, 0]}>
+      {/* Cat House (Against front wall) */}
+      <group position={[2.2, -1.5, 6.4]} rotation={[0, Math.PI, 0]}>
         <mesh castShadow position={[0, 0, 0]}>
           <boxGeometry args={[1, 1, 1]} />
           <meshStandardMaterial color="#4A2F1D" />
@@ -158,8 +158,8 @@ export function Room({ onPcClick, onDoorClick, onExitClick, screens, posters, is
         </mesh>
       </group>
 
-      {/* Cat Litter Box (Against right wall) */}
-      <group position={[6.5, -1.9, 2.0]} rotation={[0, -Math.PI / 2, 0]}>
+      {/* Cat Litter Box (Against front wall) */}
+      <group position={[5.0, -1.9, 6.4]} rotation={[0, Math.PI, 0]}>
         <mesh castShadow>
           <boxGeometry args={[1.2, 0.2, 0.8]} />
           <meshStandardMaterial color="#cccccc" />
