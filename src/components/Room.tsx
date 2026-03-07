@@ -127,11 +127,11 @@ export function Room({ onPcClick, onDoorClick, onExitClick, screens, posters, is
         </mesh>
       </group>
 
-      {/* Black Cat (Moved to front wall, right of door) */}
-      <Cat position={[2.2, -1.8, 5.8]} rotation={[0, Math.PI, 0]} />
+      {/* Black Cat (Moved between trash can and welcome mat) */}
+      <Cat position={[-3.0, -1.8, 6.0]} rotation={[0, Math.PI, 0]} />
 
       {/* Cat Food Bowl (Against front wall) */}
-      <group position={[3.5, -1.95, 6.6]}>
+      <group position={[-2.2, -1.95, 6.6]}>
         <mesh castShadow>
           <cylinderGeometry args={[0.15, 0.2, 0.1, 16]} />
           <meshStandardMaterial color="#ff0055" />
@@ -143,7 +143,7 @@ export function Room({ onPcClick, onDoorClick, onExitClick, screens, posters, is
       </group>
 
       {/* Cat House (Against front wall) */}
-      <group position={[2.2, -1.5, 6.4]} rotation={[0, Math.PI, 0]}>
+      <group position={[-4.0, -1.5, 6.4]} rotation={[0, Math.PI, 0]}>
         <mesh castShadow position={[0, 0, 0]}>
           <boxGeometry args={[1, 1, 1]} />
           <meshStandardMaterial color="#4A2F1D" />
@@ -159,7 +159,7 @@ export function Room({ onPcClick, onDoorClick, onExitClick, screens, posters, is
       </group>
 
       {/* Cat Litter Box (Against front wall) */}
-      <group position={[5.0, -1.9, 6.4]} rotation={[0, Math.PI, 0]}>
+      <group position={[-5.2, -1.9, 6.4]} rotation={[0, Math.PI, 0]}>
         <mesh castShadow>
           <boxGeometry args={[1.2, 0.2, 0.8]} />
           <meshStandardMaterial color="#cccccc" />

@@ -205,8 +205,7 @@ export function Player({ bounds = { x: [-10, 10], z: [-10, 10] }, room = 'outsid
         { minX: -2.25, maxX: -0.75, minZ: -5.75, maxZ: -4.25 },
         { minX: 5.0, maxX: 6.8, minZ: 4.1, maxZ: 5.9 },
         { minX: 5.5, maxX: 6.5, minZ: -1.0, maxZ: 3.0 },
-        { minX: 1.7, maxX: 2.7, minZ: 5.9, maxZ: 6.9 }, // New Cat House Area
-        { minX: 4.4, maxX: 5.6, minZ: 6.0, maxZ: 7.0 }, // New Litter Box Area
+        { minX: -6.0, maxX: -1.5, minZ: 5.9, maxZ: 6.9 }, // New Cat Area (between trash and mat)
       ];
     } else if (room === 'bedroom') {
       obstacles = [
@@ -331,7 +330,7 @@ export function Player({ bounds = { x: [-10, 10], z: [-10, 10] }, room = 'outsid
     if (currentRoom === 'inside') {
       if (isFacingAndClose(new THREE.Vector3(3.5, 0, -4), 3)) {
         canInt = true; type = 'pc'; target = 'computer'; text = 'Utiliser le bureau';
-      } else if (isFacingAndClose(new THREE.Vector3(2.2, 0, 6.0), 3)) {
+      } else if (isFacingAndClose(new THREE.Vector3(-3.0, 0, 6.0), 3)) {
         canInt = true; type = 'cat'; target = 'cat_game'; text = 'Jouer avec le chat';
       } else if (isFacingAndClose(new THREE.Vector3(-6.9, 0, 3), 3)) {
         canInt = true; type = 'door'; target = 'hallway'; text = 'Entrer dans le couloir';
