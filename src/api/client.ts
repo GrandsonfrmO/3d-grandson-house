@@ -1,7 +1,9 @@
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 export const getAuthHeader = () => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('authToken') : null;
+  const token = typeof window !== 'undefined' 
+    ? (localStorage.getItem('authToken') || localStorage.getItem('adminToken')) 
+    : null;
   return token ? { 'Authorization': `Bearer ${token}` } : {};
 };
 
@@ -88,7 +90,9 @@ export const apiClient = {
 
   // Orders
   async getOrders() {
-    const res = await fetch(`${API_BASE_URL}/orders`);
+    const res = await fetch(`${API_BASE_URL}/orders`, {
+      headers: getAuthHeader()
+    });
     return res.json();
   },
 

@@ -87,19 +87,6 @@ npm start
 | `npm run test` | Exécuter les tests |
 | `npm run test:watch` | Exécuter les tests en mode watch |
 
-## 🐳 Docker
-
-### Déployer avec Docker Compose
-```bash
-docker-compose up -d
-```
-
-### Déployer avec Docker (frontend uniquement)
-```bash
-docker build -f Dockerfile.frontend -t react-shop:latest .
-docker run -p 3000:3000 react-shop:latest
-```
-
 ## 📚 Structure du projet
 
 ```

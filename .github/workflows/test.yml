@@ -7,16 +7,46 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  test:
+  unit-tests:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run unit tests
+      run: npm run test
+    
+    - name: Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./coverage/coverage-final.json
+        flags: unittests
+        name: codecov-umbrella
+      continue-on-error: true
+
+  integration-tests:
     runs-on: ubuntu-latest
     
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgres:15
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: neondb
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -26,31 +56,77 @@ jobs:
           - 5432:5432
     
     steps:
-      - uses: actions/checkout@v3
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-          cache: 'npm'
-      
-      - name: Install dependencies
-        run: npm ci
-      
-      - name: Run linter
-        run: npm run lint
-      
-      - name: Run tests
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/neondb
-          JWT_SECRET: test-secret
-          ADMIN_USERNAME: admin
-          ADMIN_PASSWORD: admin123
-        run: npm test
-      
-      - name: Build frontend
-        run: npm run build
-      
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-        if: always()
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Setup database
+      run: npm run setup-db
+      env:
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+    
+    - name: Run integration tests
+      run: npm run test
+      env:
+        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+        JWT_SECRET: test-secret
+        GEMINI_API_KEY: test-key
+        RESEND_API_KEY: test-key
+
+  e2e-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build
+      run: npm run build
+    
+    - name: Run E2E tests
+      run: npm run test
+      continue-on-error: true
+
+  type-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Type check
+      run: npm run lint
+
+  test-report:
+    needs: [unit-tests, integration-tests, type-check]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+    - name: Test results
+      run: |
+        echo "All tests completed"
+        echo "Check the logs above for details"

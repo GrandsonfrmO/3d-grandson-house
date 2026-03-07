@@ -1,6 +1,6 @@
-# Guide de Déploiement
+# Déploiement simple - GitHub uniquement
 
-Ce guide couvre le déploiement de l'application sur différentes plateformes.
+Ce guide couvre le déploiement simple de l'application directement depuis GitHub.
 
 ## 📋 Prérequis généraux
 
@@ -302,8 +302,6 @@ docker run -d \
 docker-compose up -d
 ```
 
----
-
 ## 📊 Monitoring et Logs
 
 ### Heroku
@@ -317,11 +315,6 @@ Dashboard → Logs
 ### DigitalOcean
 ```bash
 pm2 logs
-```
-
-### Docker
-```bash
-docker logs -f your-app
 ```
 
 ---

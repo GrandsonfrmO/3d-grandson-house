@@ -255,8 +255,8 @@ app.get('/api/posters', async (req: Request, res: Response) => {
   }
 });
 
-// Update posters (Public endpoint for admin)
-app.put('/api/posters/:id', async (req: Request, res: Response) => {
+// Update posters (Protected)
+app.put('/api/posters/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { image, room, location, status } = req.body;
@@ -295,8 +295,8 @@ app.get('/api/screens', async (req: Request, res: Response) => {
   }
 });
 
-// Update screens (Public endpoint for admin)
-app.put('/api/screens/:id', async (req: Request, res: Response) => {
+// Update screens (Protected)
+app.put('/api/screens/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { image } = req.body;
@@ -326,10 +326,10 @@ app.put('/api/screens/:id', async (req: Request, res: Response) => {
   }
 });
 
-// ORDERS ENDPOINTS (Public - read only)
-app.get('/api/orders', async (req: Request, res: Response) => {
+// ORDERS ENDPOINTS (Protected)
+app.get('/api/orders', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
-    logger.info('Fetching orders');
+    logger.info('Fetching orders', { user: req.user?.username });
     const result = await pool.query('SELECT * FROM orders ORDER BY date DESC');
     
     // Fetch items for each order

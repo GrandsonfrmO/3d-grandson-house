@@ -1,0 +1,90 @@
+name: Lint
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run TypeScript check
+      run: npm run lint
+      continue-on-error: true
+    
+    - name: Check for console.log
+      run: |
+        if grep -r "console\\.log" src/ --include="*.ts" --include="*.tsx" | grep -v "test"; then
+          echo "❌ Found console.log statements in production code"
+          exit 1
+        fi
+      continue-on-error: true
+    
+    - name: Check for TODO comments
+      run: |
+        echo "TODO comments found:"
+        grep -r "TODO\|FIXME\|HACK" src/ --include="*.ts" --include="*.tsx" || echo "None found"
+      continue-on-error: true
+
+  format-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Check code formatting
+      run: |
+        echo "Code formatting check"
+        # Ajouter votre outil de formatage ici (prettier, etc.)
+      continue-on-error: true
+
+  security-lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Check for hardcoded secrets
+      run: |
+        if grep -r "password\|secret\|api.key\|token" src/ --include="*.ts" --include="*.tsx" | grep -v "test\|example\|placeholder"; then
+          echo "⚠️ Possible hardcoded secrets found"
+        fi
+      continue-on-error: true
+    
+    - name: Check for vulnerable patterns
+      run: |
+        echo "Checking for vulnerable patterns..."
+        # Ajouter vos vérifications de sécurité ici
+      continue-on-error: true
