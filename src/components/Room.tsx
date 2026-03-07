@@ -115,24 +115,23 @@ export function Room({ onPcClick, onDoorClick, onExitClick, screens, posters, is
         </Text>
       </group>
 
-      {/* Trash Can (Right corner near exit) */}
-      <group position={[-6.2, -1.5, 6.2]}>
+      {/* Trash Can (Moved to corner) */}
+      <group position={[-6.5, -1.5, 6.5]}>
         <mesh castShadow>
           <cylinderGeometry args={[0.4, 0.3, 1, 16]} />
           <meshStandardMaterial color="#444444" roughness={0.6} metalness={0.2} />
         </mesh>
-        {/* Trash Can Rim */}
         <mesh position={[0, 0.5, 0]} rotation={[Math.PI / 2, 0, 0]}>
           <torusGeometry args={[0.4, 0.05, 16, 32]} />
           <meshStandardMaterial color="#222222" />
         </mesh>
       </group>
 
-      {/* Black Cat with Green Eyes */}
-      <Cat position={[-1.8, -1.8, 6.0]} rotation={[0, Math.PI, 0]} />
+      {/* Black Cat (Moved to right wall area) */}
+      <Cat position={[6.2, -1.8, 3.5]} rotation={[0, -Math.PI / 2, 0]} />
 
-      {/* Cat Food Bowl */}
-      <group position={[-2.5, -1.95, 6.5]}>
+      {/* Cat Food Bowl (Against right wall) */}
+      <group position={[6.7, -1.95, 4.2]}>
         <mesh castShadow>
           <cylinderGeometry args={[0.15, 0.2, 0.1, 16]} />
           <meshStandardMaterial color="#ff0055" />
@@ -143,8 +142,8 @@ export function Room({ onPcClick, onDoorClick, onExitClick, screens, posters, is
         </mesh>
       </group>
 
-      {/* Cat House */}
-      <group position={[-2.5, -1.5, 5.5]} rotation={[0, Math.PI, 0]}>
+      {/* Cat House (In the corner) */}
+      <group position={[6.3, -1.5, 3.0]} rotation={[0, -Math.PI / 2, 0]}>
         <mesh castShadow position={[0, 0, 0]}>
           <boxGeometry args={[1, 1, 1]} />
           <meshStandardMaterial color="#4A2F1D" />
@@ -159,8 +158,8 @@ export function Room({ onPcClick, onDoorClick, onExitClick, screens, posters, is
         </mesh>
       </group>
 
-      {/* Cat Litter Box */}
-      <group position={[-1.0, -1.9, 6.5]}>
+      {/* Cat Litter Box (Against right wall) */}
+      <group position={[6.5, -1.9, 2.0]} rotation={[0, -Math.PI / 2, 0]}>
         <mesh castShadow>
           <boxGeometry args={[1.2, 0.2, 0.8]} />
           <meshStandardMaterial color="#cccccc" />
@@ -263,8 +262,6 @@ export function Room({ onPcClick, onDoorClick, onExitClick, screens, posters, is
           <meshBasicMaterial color="#0088ff" />
         </mesh>
       </group>
-
-      {/* Removed Cyberpunk Window to reveal posters */}
 
       {/* Desk */}
       <group position={[3.5, -0.5, -5]}>
@@ -471,28 +468,6 @@ export function Room({ onPcClick, onDoorClick, onExitClick, screens, posters, is
           <meshBasicMaterial color="#00ffcc" transparent opacity={0.5} />
         </mesh>
 
-        {/* Mousepad */}
-        <mesh position={[0.6, -0.94, 1.4]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-          <planeGeometry args={[2.2, 0.8]} />
-          <meshStandardMaterial color="#111" />
-        </mesh>
-        {/* Mousepad Glow */}
-        <mesh position={[0.6, -0.93, 1.4]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[2.25, 0.85]} />
-          <meshBasicMaterial color="#00ffcc" transparent opacity={0.5} />
-        </mesh>
-
-        {/* Mousepad */}
-        <mesh position={[0.6, -0.94, 1.4]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-          <planeGeometry args={[2.2, 0.8]} />
-          <meshStandardMaterial color="#111" />
-        </mesh>
-        {/* Mousepad Glow */}
-        <mesh position={[0.6, -0.93, 1.4]} rotation={[-Math.PI / 2, 0, 0]}>
-          <planeGeometry args={[2.25, 0.85]} />
-          <meshBasicMaterial color="#00ffcc" transparent opacity={0.5} />
-        </mesh>
-
         {/* Keyboard */}
         <mesh position={[0, -0.9, 1.4]} rotation={[-0.05, 0, 0]} castShadow>
           <boxGeometry args={[1.5, 0.05, 0.5]} />
@@ -531,64 +506,6 @@ export function Room({ onPcClick, onDoorClick, onExitClick, screens, posters, is
           <mesh position={[-0.1, 0.04, -0.06]}>
             <boxGeometry args={[0.08, 0.02, 0.08]} />
             <meshStandardMaterial color="#ff0055" />
-          </mesh>
-        </group>
-
-        {/* Gaming Mic */}
-        <group position={[-1.0, -0.5, 0.8]} rotation={[0, 0.5, 0]}>
-          {/* Base */}
-          <mesh castShadow position={[0, -0.4, 0]}>
-            <cylinderGeometry args={[0.15, 0.2, 0.05, 32]} />
-            <meshStandardMaterial color="#111" />
-          </mesh>
-          {/* Stand */}
-          <mesh castShadow position={[0, -0.1, 0]}>
-            <cylinderGeometry args={[0.02, 0.02, 0.6]} />
-            <meshStandardMaterial color="#222" />
-          </mesh>
-          {/* Mic Body */}
-          <mesh castShadow position={[0, 0.3, 0]} rotation={[0.2, 0, 0]}>
-            <cylinderGeometry args={[0.06, 0.06, 0.2, 16]} />
-            <meshStandardMaterial color="#333" />
-          </mesh>
-          {/* Pop Filter */}
-          <mesh position={[0, 0.3, 0.1]} rotation={[0.2, 0, 0]}>
-            <circleGeometry args={[0.08, 32]} />
-            <meshBasicMaterial color="#000" transparent opacity={0.8} />
-          </mesh>
-          {/* RGB Ring */}
-          <mesh position={[0, 0.2, 0]} rotation={[0.2, 0, 0]}>
-            <torusGeometry args={[0.06, 0.01, 16, 32]} />
-            <meshBasicMaterial color="#ff00ff" />
-          </mesh>
-        </group>
-
-        {/* Gaming Mic */}
-        <group position={[-1.0, -0.5, 0.8]} rotation={[0, 0.5, 0]}>
-          {/* Base */}
-          <mesh castShadow position={[0, -0.4, 0]}>
-            <cylinderGeometry args={[0.15, 0.2, 0.05, 32]} />
-            <meshStandardMaterial color="#111" />
-          </mesh>
-          {/* Stand */}
-          <mesh castShadow position={[0, -0.1, 0]}>
-            <cylinderGeometry args={[0.02, 0.02, 0.6]} />
-            <meshStandardMaterial color="#222" />
-          </mesh>
-          {/* Mic Body */}
-          <mesh castShadow position={[0, 0.3, 0]} rotation={[0.2, 0, 0]}>
-            <cylinderGeometry args={[0.06, 0.06, 0.2, 16]} />
-            <meshStandardMaterial color="#333" />
-          </mesh>
-          {/* Pop Filter */}
-          <mesh position={[0, 0.3, 0.1]} rotation={[0.2, 0, 0]}>
-            <circleGeometry args={[0.08, 32]} />
-            <meshBasicMaterial color="#000" transparent opacity={0.8} />
-          </mesh>
-          {/* RGB Ring */}
-          <mesh position={[0, 0.2, 0]} rotation={[0.2, 0, 0]}>
-            <torusGeometry args={[0.06, 0.01, 16, 32]} />
-            <meshBasicMaterial color="#ff00ff" />
           </mesh>
         </group>
 
@@ -764,7 +681,6 @@ export function Room({ onPcClick, onDoorClick, onExitClick, screens, posters, is
             </div>
           </Html>
         </mesh>
-        {/* Game Graphics on TV - Removed as we use Html now */}
         
         {/* Weapons above TV */}
         <group position={[0, 4.2, 0.05]}>
