@@ -45,7 +45,7 @@ export function AdminLoginPage({ onLoginSuccess }: AdminLoginPageProps) {
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="admin"
+                placeholder="Identifiant"
                 required
                 disabled={loading}
               />

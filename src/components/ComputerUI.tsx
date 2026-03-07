@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Monitor, ShoppingBag, Gamepad2, Settings, X, Wifi, Battery, Volume2, Lock } from 'lucide-react';
+import { adminAPI } from '../api/admin';
 
 const WALLPAPERS = [
   'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop', // Cyberpunk city
@@ -15,18 +16,26 @@ export function ComputerUI({ onClose, onShop, onGames }: { onClose: () => void, 
   const [activeApp, setActiveApp] = useState<string | null>(null);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  const handleAdminLogin = () => {
-    if (password === 'admin123') {
+  const handleAdminLogin = async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      // Utilise l'API réelle pour valider les identifiants configurés dans le .env
+      const { token } = await adminAPI.login('gabi', password);
+      localStorage.setItem('adminToken', token);
       window.history.pushState({}, '', '/admin');
       window.dispatchEvent(new PopStateEvent('popstate'));
-    } else {
+    } catch (err) {
       setError('Mot de passe incorrect');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -173,9 +182,14 @@ export function ComputerUI({ onClose, onShop, onGames }: { onClose: () => void, 
                     onChange={e => setPassword(e.target.value)}
                     onKeyDown={e => { if(e.key === 'Enter') handleAdminLogin() }}
                     autoFocus
+                    disabled={isLoading}
                   />
-                  <button onClick={handleAdminLogin} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-md text-sm transition-colors mt-2">
-                    Connexion
+                  <button 
+                    onClick={handleAdminLogin} 
+                    disabled={isLoading}
+                    className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 rounded-md text-sm transition-colors mt-2 disabled:opacity-50"
+                  >
+                    {isLoading ? 'Vérification...' : 'Connexion'}
                   </button>
                   {error && <span className="text-red-500 text-xs text-center">{error}</span>}
                 </div>
