@@ -24,7 +24,7 @@ export function Player({ bounds = { x: [-10, 10], z: [-10, 10] }, room = 'outsid
   const [keys, setKeys] = useState({ w: false, a: false, s: false, d: false, shift: false, space: false });
 
   // Animation state
-  const [animState, setAnimState] = useState('idle'); // idle, walk, run, jump
+  const [animState, setAnimState] = useState('idle');
   const animTime = useRef(0);
   
   // Physics state
@@ -68,7 +68,6 @@ export function Player({ bounds = { x: [-10, 10], z: [-10, 10] }, room = 'outsid
     };
   }, [navMode, onInteract]);
 
-  // Reset position when room changes
   useEffect(() => {
     position.current.set(...(playerPosition as [number, number, number]));
     prevPosition.current.set(...(playerPosition as [number, number, number]));
@@ -78,16 +77,12 @@ export function Player({ bounds = { x: [-10, 10], z: [-10, 10] }, room = 'outsid
     }
   }, [room]);
 
-  // Initial camera setup for play mode and room changes
   useEffect(() => {
     if (navMode === 'play' && controls && camera) {
       prevPosition.current.copy(position.current);
-      
-      // Plunging view: higher Y, further Z
       const offset = new THREE.Vector3(0, 5, 8); 
       offset.applyAxisAngle(new THREE.Vector3(0, 1, 0), playerRotation);
       camera.position.copy(position.current).add(offset);
-      
       controls.target.copy(position.current).add(new THREE.Vector3(0, 1, 0));
       controls.update();
     }
@@ -96,7 +91,6 @@ export function Player({ bounds = { x: [-10, 10], z: [-10, 10] }, room = 'outsid
   useFrame((state, delta) => {
     if (navMode !== 'play' || !groupRef.current) return;
 
-    // Input handling (Keyboard + Joystick)
     let moveX = 0;
     let moveZ = 0;
     let running = keys.shift || isRunning;
@@ -108,16 +102,10 @@ export function Player({ bounds = { x: [-10, 10], z: [-10, 10] }, room = 'outsid
 
     let inputMag = 1;
 
-    // Joystick overrides keyboard if active
     if (joystickMove.x !== 0 || joystickMove.y !== 0) {
-      // Use raw values, they might be normalized (-1 to 1) or pixels (-50 to 50)
       moveX = joystickMove.x;
-      moveZ = -joystickMove.y; // Joystick Y is up positive, 3D Z is down positive
-      
+      moveZ = -joystickMove.y;
       const mag = Math.sqrt(moveX * moveX + moveZ * moveZ);
-      
-      // If values are in pixels (e.g., up to 50), this normalizes them to max 1
-      // If values are already normalized, this keeps them as is (unless > 1)
       if (mag > 1) {
         moveX /= mag;
         moveZ /= mag;
@@ -125,8 +113,6 @@ export function Player({ bounds = { x: [-10, 10], z: [-10, 10] }, room = 'outsid
       } else {
         inputMag = mag;
       }
-      
-      // Speed based only on pressure, no automatic running
       running = false;
     } else {
       const moveVector = new THREE.Vector3(moveX, 0, moveZ);
@@ -151,7 +137,6 @@ export function Player({ bounds = { x: [-10, 10], z: [-10, 10] }, room = 'outsid
       targetVelocityX = moveVector.x * speed;
       targetVelocityZ = moveVector.z * speed;
 
-      // Smooth rotation
       const targetRotation = Math.atan2(targetVelocityX, targetVelocityZ);
       let diff = targetRotation - playerRotation;
       while (diff < -Math.PI) diff += Math.PI * 2;
@@ -163,40 +148,33 @@ export function Player({ bounds = { x: [-10, 10], z: [-10, 10] }, room = 'outsid
       setAnimState('idle');
     }
 
-    // Acceleration & Deceleration (Lerp)
-    const accel = isGrounded.current ? 10 : 3; // Smoother acceleration
+    const accel = isGrounded.current ? 10 : 3;
     velocity.current.x = THREE.MathUtils.lerp(velocity.current.x, targetVelocityX, accel * delta);
     velocity.current.z = THREE.MathUtils.lerp(velocity.current.z, targetVelocityZ, accel * delta);
 
-    // Jumping
     if ((keys.space || isJumping) && isGrounded.current) {
-      velocity.current.y = 8; // Snappier jump
+      velocity.current.y = 8;
       isGrounded.current = false;
       setAnimState('jump');
     }
 
-    // Gravity
     if (!isGrounded.current) {
-      velocity.current.y -= 25 * delta; // Slightly softer gravity
+      velocity.current.y -= 25 * delta;
     }
 
-    // Apply velocity
     position.current.x += velocity.current.x * delta;
     position.current.y += velocity.current.y * delta;
     position.current.z += velocity.current.z * delta;
 
-    // Floor collision (Dynamic based on room)
-    let floorY = -2; // Default for inside rooms
+    let floorY = -2;
     if (room === 'outside') {
-      // Check if on yard or main ground
       if (Math.abs(position.current.x) < 4 && position.current.z > -2 && position.current.z < 2) {
-        floorY = 0.7; // Main Ground Floor
+        floorY = 0.7;
       } else {
-        floorY = -1.5; // Yard
+        floorY = -1.5;
       }
     }
     
-    // Player feet are at 0 relative to groupRef
     const targetY = floorY;
 
     if (position.current.y <= targetY) {
@@ -208,68 +186,57 @@ export function Player({ bounds = { x: [-10, 10], z: [-10, 10] }, room = 'outsid
       isGrounded.current = false;
     }
 
-    // Room-specific bounds and obstacles
-    let roomBounds = { minX: -6.5, maxX: 6.5, minZ: -6.5, maxZ: 6.5 };
+    // REFINED COLLISION BOUNDS
+    let roomBounds = { minX: -6.6, maxX: 6.6, minZ: -6.6, maxZ: 6.6 };
     let obstacles: { minX: number, maxX: number, minZ: number, maxZ: number }[] = [];
 
     if (room === 'inside') { // Gaming Room
-      roomBounds = { minX: -6.5, maxX: 6.5, minZ: -6.5, maxZ: 6.5 };
       obstacles = [
-        { minX: 1.5, maxX: 5.5, minZ: -6.5, maxZ: -3.5 }, // PC Setup
-        { minX: -5.5, maxX: -2.5, minZ: -2.5, maxZ: 0.5 }, // Sofa
-        { minX: -2.5, maxX: -0.5, minZ: -6.5, maxZ: -3.5 }, // Red Armchair
-        { minX: 4.5, maxX: 6.5, minZ: -1.0, maxZ: 1.0 }, // Arcade Machine
-        { minX: 4.5, maxX: 6.5, minZ: 1.5, maxZ: 3.5 }, // Vending Machine
-        { minX: 4.5, maxX: 6.5, minZ: 4.0, maxZ: 6.0 }, // Server Rack
-        { minX: -3.5, maxX: -0.5, minZ: 4.5, maxZ: 6.5 }, // Cat Area
+        { minX: 0.5, maxX: 6.5, minZ: -6.25, maxZ: -3.75 }, // Desk
+        { minX: -6.6, maxX: -5.0, minZ: -4.0, maxZ: 0.0 }, // Sofa
+        { minX: -2.25, maxX: -0.75, minZ: -5.75, maxZ: -4.25 }, // Armchair
+        { minX: 5.0, maxX: 6.8, minZ: 4.1, maxZ: 5.9 }, // Freezer
+        { minX: 5.5, maxX: 6.5, minZ: -1.0, maxZ: 3.0 }, // TV Table
+        { minX: -3.0, maxX: -2.0, minZ: 5.0, maxZ: 6.0 }, // Cat House
       ];
     } else if (room === 'bedroom') {
-      roomBounds = { minX: -6.5, maxX: 6.5, minZ: -6.5, maxZ: 6.5 };
       obstacles = [
-        { minX: -2.5, maxX: 2.5, minZ: -6.5, maxZ: -1.5 }, // Bed
-        { minX: -6.5, maxX: -3.5, minZ: -6.5, maxZ: -3.5 }, // Wardrobe
-        { minX: 3.5, maxX: 6.5, minZ: -1.5, maxZ: 1.5 }, // Desk
-        { minX: -6.5, maxX: -3.5, minZ: 0.5, maxZ: 3.5 }, // Bookshelf
+        { minX: -4.5, maxX: -0.5, minZ: -6.5, maxZ: -1.5 }, // Bed
+        { minX: -6.5, maxX: -0.5, minZ: 6.3, maxZ: 7.3 }, // Black Display
+        { minX: 0.9, maxX: 6.1, minZ: 6.0, maxZ: 7.0 }, // Clothing Rack
+        { minX: 6.3, maxX: 7.3, minZ: -3.5, maxZ: 3.5 }, // Right Wall Shelves
+        { minX: -7.3, maxX: -6.3, minZ: -3.5, maxZ: 3.5 }, // Left Wall Shelves
       ];
     } else if (room === 'bathroom') {
-      roomBounds = { minX: -4.5, maxX: 4.5, minZ: -4.5, maxZ: 4.5 };
+      roomBounds = { minX: -4.6, maxX: 4.6, minZ: -4.6, maxZ: 4.6 };
       obstacles = [
-        { minX: -4.5, maxX: -1.5, minZ: -4.5, maxZ: -0.5 }, // Bathtub
-        { minX: 1.5, maxX: 4.5, minZ: -4.5, maxZ: -1.5 }, // Toilet
-        { minX: -2.0, maxX: 2.0, minZ: -4.5, maxZ: -2.5 }, // Sink/Mirror
+        { minX: 2.5, maxX: 5.0, minZ: -5.0, maxZ: -2.5 }, // Shower
+        { minX: -4.1, maxX: -2.9, minZ: -0.75, maxZ: 0.75 }, // Toilet
+        { minX: 4.0, maxX: 5.0, minZ: -1.0, maxZ: 1.0 }, // Sink
       ];
     } else if (room === 'hallway') {
-      roomBounds = { minX: -3.5, maxX: 3.5, minZ: -3.5, maxZ: 3.5 };
-      obstacles = [
-        { minX: 1.5, maxX: 3.5, minZ: -1.5, maxZ: 1.5 }, // Bench
-        { minX: -3.5, maxX: -1.5, minZ: -3.5, maxZ: -0.5 }, // Plant
-      ];
+      roomBounds = { minX: -3.6, maxX: 3.6, minZ: -3.6, maxZ: 3.6 };
     } else if (room === 'studio') {
-      roomBounds = { minX: -6.5, maxX: 6.5, minZ: -6.5, maxZ: 6.5 };
       obstacles = [
-        { minX: -3.0, maxX: 3.0, minZ: -6.5, maxZ: -2.5 }, // Desk/Mixer
-        { minX: -5.0, maxX: -2.0, minZ: -6.5, maxZ: -2.5 }, // Left Speaker
-        { minX: 2.0, maxX: 5.0, minZ: -6.5, maxZ: -2.5 }, // Right Speaker
-        { minX: -5.5, maxX: -2.5, minZ: -0.5, maxZ: 4.5 }, // Sofa
-        { minX: -3.0, maxX: -1.0, minZ: 0.5, maxZ: 3.5 }, // Coffee Table
-        { minX: 2.5, maxX: 5.5, minZ: 0.0, maxZ: 4.0 }, // Keyboard Stand
+        { minX: -3.0, maxX: 3.0, minZ: -3.5, maxZ: -0.5 }, // Work Table
+        { minX: -6.75, maxX: -5.25, minZ: -3.5, maxZ: -0.5 }, // Wardrobe
+        { minX: -6.5, maxX: -4.5, minZ: -5.75, maxZ: -4.25 }, // Small Table
+        { minX: 4.0, maxX: 6.0, minZ: -5.25, maxZ: -4.75 }, // T-Shirt Rack
       ];
     } else if (room === 'outside') {
-      roomBounds = { minX: -9.5, maxX: 9.5, minZ: -9.5, maxZ: 9.5 };
+      roomBounds = { minX: -5.5, maxX: 5.5, minZ: -4.5, maxZ: 9.5 };
       obstacles = [
         { minX: -4, maxX: 4, minZ: -2, maxZ: 2 }, // House base
-        { minX: 4.0, maxX: 8.0, minZ: 4.0, maxZ: 10.0 }, // Car (approximate bounding box for rotated car)
+        { minX: -2, maxX: 2, minZ: 4, maxZ: 8 }, // Car
       ];
     }
 
-    // Apply bounds
     if (position.current.x < roomBounds.minX) position.current.x = roomBounds.minX;
     if (position.current.x > roomBounds.maxX) position.current.x = roomBounds.maxX;
     if (position.current.z < roomBounds.minZ) position.current.z = roomBounds.minZ;
     if (position.current.z > roomBounds.maxZ) position.current.z = roomBounds.maxZ;
 
-    // Apply obstacles (simple AABB push out)
-    const playerRadius = 0.4; // Slightly smaller radius for smoother sliding
+    const playerRadius = 0.35; // Rayon ajusté pour plus de précision
     for (const obs of obstacles) {
       if (
         position.current.x + playerRadius > obs.minX &&
@@ -277,16 +244,14 @@ export function Player({ bounds = { x: [-10, 10], z: [-10, 10] }, room = 'outsid
         position.current.z + playerRadius > obs.minZ &&
         position.current.z - playerRadius < obs.maxZ
       ) {
-        // Find closest edge to push out
         const distLeft = (position.current.x + playerRadius) - obs.minX;
         const distRight = obs.maxX - (position.current.x - playerRadius);
         const distTop = (position.current.z + playerRadius) - obs.minZ;
         const distBottom = obs.maxZ - (position.current.z - playerRadius);
 
         const minDist = Math.min(distLeft, distRight, distTop, distBottom);
-
-        // Add a tiny offset to prevent getting stuck
         const epsilon = 0.01;
+
         if (minDist === distLeft) {
           position.current.x = obs.minX - playerRadius - epsilon;
           velocity.current.x = 0;
@@ -303,14 +268,11 @@ export function Player({ bounds = { x: [-10, 10], z: [-10, 10] }, room = 'outsid
       }
     }
 
-    // Update group
     groupRef.current.position.copy(position.current);
     groupRef.current.rotation.y = playerRotation;
 
-    // Store position for interactions
     setPlayerPosition([position.current.x, position.current.y, position.current.z]);
 
-    // Camera follow (Independent of player rotation)
     const moveDelta = position.current.clone().sub(prevPosition.current);
     prevPosition.current.copy(position.current);
 
@@ -320,70 +282,49 @@ export function Player({ bounds = { x: [-10, 10], z: [-10, 10] }, room = 'outsid
       controls.update();
     }
 
-    // Animations
     animTime.current += delta;
     const t = animTime.current;
 
     if (leftLeg.current && rightLeg.current && leftArm.current && rightArm.current && torso.current && head.current) {
       if (animState === 'idle') {
-        // Natural resting posture (slight breathing)
         const breath = Math.sin(t * 2) * 0.02;
         torso.current.position.y = 0.1 + breath;
         head.current.position.y = 0.7 + breath;
-        
         leftLeg.current.rotation.x = THREE.MathUtils.lerp(leftLeg.current.rotation.x, 0, 0.1);
         rightLeg.current.rotation.x = THREE.MathUtils.lerp(rightLeg.current.rotation.x, 0, 0.1);
         leftArm.current.rotation.x = THREE.MathUtils.lerp(leftArm.current.rotation.x, 0, 0.1);
         rightArm.current.rotation.x = THREE.MathUtils.lerp(rightArm.current.rotation.x, 0, 0.1);
-        
-        // Reset Z rotation
         leftArm.current.rotation.z = THREE.MathUtils.lerp(leftArm.current.rotation.z, 0, 0.1);
         rightArm.current.rotation.z = THREE.MathUtils.lerp(rightArm.current.rotation.z, 0, 0.1);
       } else if (animState === 'walk' || animState === 'run') {
-        // Reset breathing
         torso.current.position.y = THREE.MathUtils.lerp(torso.current.position.y, 0.1, 0.1);
         head.current.position.y = THREE.MathUtils.lerp(head.current.position.y, 0.7, 0.1);
-
-        // Calculate actual movement speed for animation sync
         const currentSpeed = Math.sqrt(velocity.current.x * velocity.current.x + velocity.current.z * velocity.current.z);
-        const speedMult = currentSpeed * 2.5; // Sync animation speed with physical speed
-        const angle = Math.min(0.8, currentSpeed * 0.15); // Sync amplitude with physical speed
-
+        const speedMult = currentSpeed * 2.5;
+        const angle = Math.min(0.8, currentSpeed * 0.15);
         leftLeg.current.rotation.x = Math.sin(t * speedMult) * angle;
         rightLeg.current.rotation.x = Math.sin(t * speedMult + Math.PI) * angle;
         leftArm.current.rotation.x = Math.sin(t * speedMult + Math.PI) * angle;
         rightArm.current.rotation.x = Math.sin(t * speedMult) * angle;
-        
-        // Slight arm swing outward
         leftArm.current.rotation.z = 0.1;
         rightArm.current.rotation.z = -0.1;
       } else if (animState === 'jump') {
-        // Reset breathing
         torso.current.position.y = THREE.MathUtils.lerp(torso.current.position.y, 0.1, 0.1);
         head.current.position.y = THREE.MathUtils.lerp(head.current.position.y, 0.7, 0.1);
-
-        // Jump animation (impulsion, suspension, landing based on vertical velocity)
         if (velocity.current.y > 0) {
-          // Impulsion / Going up
           leftLeg.current.rotation.x = THREE.MathUtils.lerp(leftLeg.current.rotation.x, -0.4, 0.2);
           rightLeg.current.rotation.x = THREE.MathUtils.lerp(rightLeg.current.rotation.x, 0.2, 0.2);
           leftArm.current.rotation.x = THREE.MathUtils.lerp(leftArm.current.rotation.x, -0.8, 0.2);
           rightArm.current.rotation.x = THREE.MathUtils.lerp(rightArm.current.rotation.x, -0.8, 0.2);
-          leftArm.current.rotation.z = THREE.MathUtils.lerp(leftArm.current.rotation.z, 0.3, 0.2);
-          rightArm.current.rotation.z = THREE.MathUtils.lerp(rightArm.current.rotation.z, -0.3, 0.2);
         } else {
-          // Suspension / Falling
           leftLeg.current.rotation.x = THREE.MathUtils.lerp(leftLeg.current.rotation.x, 0.1, 0.2);
           rightLeg.current.rotation.x = THREE.MathUtils.lerp(rightLeg.current.rotation.x, 0.1, 0.2);
           leftArm.current.rotation.x = THREE.MathUtils.lerp(leftArm.current.rotation.x, 0.5, 0.2);
           rightArm.current.rotation.x = THREE.MathUtils.lerp(rightArm.current.rotation.x, 0.5, 0.2);
-          leftArm.current.rotation.z = THREE.MathUtils.lerp(leftArm.current.rotation.z, 0.5, 0.2);
-          rightArm.current.rotation.z = THREE.MathUtils.lerp(rightArm.current.rotation.z, -0.5, 0.2);
         }
       }
     }
 
-    // Contextual Interactions Check
     checkInteractions(position.current, room);
   });
 
@@ -393,22 +334,17 @@ export function Player({ bounds = { x: [-10, 10], z: [-10, 10] }, room = 'outsid
     let target = null;
     let text = '';
 
-    // Helper to check if player is close and facing the target
     const isFacingAndClose = (targetPos: THREE.Vector3, maxDist: number = 2.5, maxAngle: number = Math.PI / 1.5) => {
       const dist = pos.distanceTo(targetPos);
       if (dist > maxDist) return false;
-      
-      // If very close, trigger immediately regardless of angle
       if (dist < 1.8) return true;
-      
       const dirToTarget = targetPos.clone().sub(pos).normalize();
       const playerForward = new THREE.Vector3(0, 0, 1).applyAxisAngle(new THREE.Vector3(0, 1, 0), playerRotation);
-      
       const angle = playerForward.angleTo(dirToTarget);
       return angle < maxAngle;
     };
 
-    if (currentRoom === 'inside') { // Gaming Room
+    if (currentRoom === 'inside') {
       if (isFacingAndClose(new THREE.Vector3(3.5, 0, -4), 3)) {
         canInt = true; type = 'pc'; target = 'computer'; text = 'Utiliser le bureau';
       } else if (isFacingAndClose(new THREE.Vector3(-1.8, 0, 6.0), 3)) {
@@ -462,40 +398,33 @@ export function Player({ bounds = { x: [-10, 10], z: [-10, 10] }, room = 'outsid
 
   return (
     <group ref={groupRef}>
-      {/* Character Model */}
       <group position={[0, playerYOffset, 0]} scale={playerScale}>
-        {/* Head */}
         <mesh position={[0, 0.7, 0]} castShadow ref={head}>
           <boxGeometry args={[0.4, 0.4, 0.4]} />
           <meshStandardMaterial color="#ffccaa" />
         </mesh>
-        {/* Torso */}
         <mesh position={[0, 0.1, 0]} castShadow ref={torso}>
           <boxGeometry args={[0.6, 0.8, 0.3]} />
           <meshStandardMaterial color={shirtColor} />
         </mesh>
-        {/* Left Arm */}
         <group position={[-0.4, 0.4, 0]} ref={leftArm}>
           <mesh position={[0, -0.3, 0]} castShadow>
             <boxGeometry args={[0.2, 0.6, 0.2]} />
             <meshStandardMaterial color={shirtColor} />
           </mesh>
         </group>
-        {/* Right Arm */}
         <group position={[0.4, 0.4, 0]} ref={rightArm}>
           <mesh position={[0, -0.3, 0]} castShadow>
             <boxGeometry args={[0.2, 0.6, 0.2]} />
             <meshStandardMaterial color={shirtColor} />
           </mesh>
         </group>
-        {/* Left Leg */}
         <group position={[-0.15, -0.3, 0]} ref={leftLeg}>
           <mesh position={[0, -0.4, 0]} castShadow>
             <boxGeometry args={[0.25, 0.8, 0.25]} />
             <meshStandardMaterial color={pantsColor} />
           </mesh>
         </group>
-        {/* Right Leg */}
         <group position={[0.15, -0.3, 0]} ref={rightLeg}>
           <mesh position={[0, -0.4, 0]} castShadow>
             <boxGeometry args={[0.25, 0.8, 0.25]} />
