@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Monitor, ShoppingBag, Gamepad2, Settings, X, Wifi, Battery, Volume2, Lock } from 'lucide-react';
+import { Monitor, ShoppingBag, Gamepad2, Settings, X, Wifi, Battery, Volume2, Lock, User } from 'lucide-react';
 import { adminAPI } from '../api/admin';
 
 const WALLPAPERS = [
@@ -14,6 +14,7 @@ export function ComputerUI({ onClose, onShop, onGames }: { onClose: () => void, 
   const [time, setTime] = useState(new Date());
   const [wallpaper, setWallpaper] = useState(WALLPAPERS[0]);
   const [activeApp, setActiveApp] = useState<string | null>(null);
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -24,16 +25,20 @@ export function ComputerUI({ onClose, onShop, onGames }: { onClose: () => void, 
   }, []);
 
   const handleAdminLogin = async () => {
+    if (!username || !password) {
+      setError('Veuillez remplir tous les champs');
+      return;
+    }
+    
     setIsLoading(true);
     setError('');
     try {
-      // Utilise l'API réelle pour valider les identifiants configurés dans le .env
-      const { token } = await adminAPI.login('gabi', password);
+      const { token } = await adminAPI.login(username, password);
       localStorage.setItem('adminToken', token);
       window.history.pushState({}, '', '/admin');
       window.dispatchEvent(new PopStateEvent('popstate'));
     } catch (err) {
-      setError('Mot de passe incorrect');
+      setError(err instanceof Error ? err.message : 'Identifiants incorrects');
     } finally {
       setIsLoading(false);
     }
@@ -170,20 +175,36 @@ export function ComputerUI({ onClose, onShop, onGames }: { onClose: () => void, 
                     <Lock size={16} />
                     <span className="text-xs font-mono">Accès Restreint</span>
                   </div>
-                  <button onClick={() => { setActiveApp(null); setError(''); setPassword(''); }} className="text-gray-400 hover:text-white transition-colors"><X size={16}/></button>
+                  <button onClick={() => { setActiveApp(null); setError(''); setPassword(''); setUsername(''); }} className="text-gray-400 hover:text-white transition-colors"><X size={16}/></button>
                 </div>
                 <div className="p-6 flex flex-col gap-4">
-                  <p className="text-gray-400 text-sm mb-2">Veuillez entrer le mot de passe administrateur.</p>
-                  <input 
-                    type="password" 
-                    placeholder="Mot de passe..." 
-                    className="bg-black border border-gray-700 rounded-md px-4 py-3 text-white font-mono text-sm focus:outline-none focus:border-cyan-500 transition-colors"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    onKeyDown={e => { if(e.key === 'Enter') handleAdminLogin() }}
-                    autoFocus
-                    disabled={isLoading}
-                  />
+                  <p className="text-gray-400 text-sm mb-2 text-center">Veuillez entrer vos identifiants administrateur.</p>
+                  
+                  <div className="relative">
+                    <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                    <input 
+                      type="text" 
+                      placeholder="Identifiant..." 
+                      className="w-full bg-black border border-gray-700 rounded-md pl-10 pr-4 py-3 text-white font-mono text-sm focus:outline-none focus:border-cyan-500 transition-colors"
+                      value={username}
+                      onChange={e => setUsername(e.target.value)}
+                      disabled={isLoading}
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                    <input 
+                      type="password" 
+                      placeholder="Mot de passe..." 
+                      className="w-full bg-black border border-gray-700 rounded-md pl-10 pr-4 py-3 text-white font-mono text-sm focus:outline-none focus:border-cyan-500 transition-colors"
+                      value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      onKeyDown={e => { if(e.key === 'Enter') handleAdminLogin() }}
+                      disabled={isLoading}
+                    />
+                  </div>
+
                   <button 
                     onClick={handleAdminLogin} 
                     disabled={isLoading}
@@ -191,7 +212,7 @@ export function ComputerUI({ onClose, onShop, onGames }: { onClose: () => void, 
                   >
                     {isLoading ? 'Vérification...' : 'Connexion'}
                   </button>
-                  {error && <span className="text-red-500 text-xs text-center">{error}</span>}
+                  {error && <span className="text-red-500 text-xs text-center font-medium">{error}</span>}
                 </div>
               </motion.div>
             )}
