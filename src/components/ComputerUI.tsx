@@ -13,11 +13,22 @@ export function ComputerUI({ onClose, onShop, onGames }: { onClose: () => void, 
   const [time, setTime] = useState(new Date());
   const [wallpaper, setWallpaper] = useState(WALLPAPERS[0]);
   const [activeApp, setActiveApp] = useState<string | null>(null);
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const handleAdminLogin = () => {
+    if (password === 'admin123') {
+      window.history.pushState({}, '', '/admin');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    } else {
+      setError('Mot de passe incorrect');
+    }
+  };
 
   return (
     <motion.div 
@@ -88,6 +99,19 @@ export function ComputerUI({ onClose, onShop, onGames }: { onClose: () => void, 
               </div>
               <span className="text-white text-xs sm:text-sm font-medium font-sans px-2 py-1 rounded bg-black/50 backdrop-blur-sm group-hover:bg-yellow-500/80 transition-colors text-center w-full truncate shadow-sm">
                 Jeux
+              </span>
+            </button>
+
+            {/* Admin Icon */}
+            <button 
+              onClick={() => setActiveApp('admin')}
+              className="group flex flex-col items-center gap-2 w-20 sm:w-24 focus:outline-none"
+            >
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center group-hover:bg-red-500/40 group-hover:border-red-400 group-hover:scale-105 transition-all shadow-lg">
+                <Lock size={28} className="text-white group-hover:text-red-300 drop-shadow-md" />
+              </div>
+              <span className="text-white text-xs sm:text-sm font-medium font-sans px-2 py-1 rounded bg-black/50 backdrop-blur-sm group-hover:bg-red-500/80 transition-colors text-center w-full truncate shadow-sm">
+                Admin
               </span>
             </button>
 
